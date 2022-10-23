@@ -1,4 +1,7 @@
 /Include
+/include
 /Lib
+/lib
 /Scripts
+/bin
 pyvenv.cfg

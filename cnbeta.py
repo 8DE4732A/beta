@@ -3,18 +3,16 @@ from bs4 import BeautifulSoup
 from sanic import Sanic
 from sanic.response import html, raw
 
-SERVER_NAME = 'http://localhost'
+SERVER_NAME = 'http://cnbeta.r.biz'
 
 app = Sanic("cnbeta")
 
 @app.listener('before_server_start')
 def init(app, loop):
-    pass
     app.ctx.aiohttp_session = aiohttp.ClientSession(loop=loop)
 
 @app.listener('after_server_stop')
 def finish(app, loop):
-    pass
     loop.run_until_complete(app.ctx.aiohttp_session.close())
     loop.close()
 
@@ -36,16 +34,19 @@ async def cnbeta(request):
         return html(f'<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><title>cnbeta</title></head><body>{articals}</body></html>')
 
 @app.get("/hot/<a>/<b>")
+@app.get("/hot/<a>/<b>/<c>")
 @app.get("/articles/<a>/<b>")
-async def articles(request, a, b):
+@app.get("/articles/<a>/<b>/<c>")
+async def articles(request, a, b, c = ''):
     url = None
     print(request.path)
     if request.path.startswith('/articles'):
-        url = 'https://www.cnbeta.com'
+        url = 'https://www.cnbeta.com' + request.path
     elif request.path.startswith('/hot'):
-        url = 'https://hot.cnbeta.com'
+        url = 'https://hot.cnbeta.com' + request.path[4:]
 
-    async with app.ctx.aiohttp_session.get(url + request.path) as response:
+    async with app.ctx.aiohttp_session.get(url) as response:
+        print(url)
         print("Status:", response.status)
         print("Content-type:", response.headers['content-type'])
         r = await response.text()
@@ -84,4 +85,4 @@ async def cdn(request, a, b, c = '', d = '', e = ''):
         return raw(r, content_type=response.headers['content-type'])
     
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, access_log=False)
+    app.run(host='0.0.0.0', port=10001, access_log=False)
